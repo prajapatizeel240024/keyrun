@@ -1,0 +1,57 @@
+{
+  "id": "helpdesk.remove_user",
+  "app": "helpdesk",
+  "kind": "remove_user",
+  "version": 1,
+  "description": "Deactivate an agent in Mock Helpdesk, only if they are active. Kebab menu, then a confirm dialog.",
+  "params": {
+    "email": { "description": "Email of the agent to deactivate", "example": "noor.tanaka@example.test" }
+  },
+  "secrets": ["username", "password", "totpSecret"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/#/login" },
+    {
+      "op": "fill",
+      "target": { "label": "Email", "placeholder": "you@company.com", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "label": "Password", "placeholder": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Continue" } } },
+    {
+      "op": "fill",
+      "target": { "role": { "role": "textbox", "name": "Authentication code" }, "css": "input[autocomplete=one-time-code]" },
+      "value": "{{totp}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Verify" } } },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Sidebar" } } }
+  ],
+  "steps": [
+    { "op": "navigate", "url": "{{baseUrl}}/#/agents", "checkpoint": true },
+    {
+      "op": "findInPages",
+      "row": { "role": { "role": "listitem" }, "css": "ul[aria-label=Agents] > li" },
+      "match": "{{params.email}}",
+      "ready": { "text": "Page ", "css": "main span" },
+      "next": { "role": { "role": "button", "name": "Next page" } },
+      "saveAs": "exists"
+    },
+    {
+      "op": "if",
+      "var": "exists",
+      "equals": "false",
+      "then": [{ "op": "end", "outcome": "noop", "message": "{{params.email}} is not an active agent" }]
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Actions for {{params.email}}", "exact": true } } },
+    { "op": "click", "target": { "role": { "role": "menuitem", "name": "Deactivate" } } },
+    {
+      "op": "click",
+      "target": { "role": { "role": "button", "name": "Deactivate agent" }, "css": "button:last-of-type", "within": { "role": { "role": "dialog", "name": "Deactivate" } } },
+      "effect": true
+    },
+    { "op": "assert", "target": { "role": { "role": "status" } }, "text": "was deactivated" }
+  ]
+}

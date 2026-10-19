@@ -1,0 +1,55 @@
+{
+  "id": "hr.create_user",
+  "app": "hr",
+  "kind": "create_user",
+  "version": 1,
+  "description": "Add a person to Mock HR, only if no one with that email exists yet (the app itself allows duplicates).",
+  "params": {
+    "email": { "description": "Work email of the new person", "example": "dara.silva@example.test" },
+    "name": { "description": "Full name", "example": "Dara Silva" },
+    "role": { "description": "Employee, Manager or Admin", "example": "Employee" }
+  },
+  "secrets": ["username", "password"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/login" },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Work email", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in']", "role": { "role": "button", "name": "Sign in" }, "css": "button[type=submit]" }
+    },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Main" }, "css": "nav" } }
+  ],
+  "steps": [
+    { "op": "navigate", "url": "{{baseUrl}}/people", "checkpoint": true },
+    {
+      "op": "findInPages",
+      "note": "Is this person already here? HR has no search, so walk the pages.",
+      "row": { "role": { "role": "row" }, "css": "tbody tr" },
+      "match": "{{params.email}}",
+      "ready": { "text": "Page ", "css": "nav[aria-label=Pagination] span:not([aria-disabled])" },
+      "next": { "role": { "role": "link", "name": "Next", "exact": true }, "css": "nav[aria-label=Pagination] a[href*='page=']:last-child" },
+      "saveAs": "exists"
+    },
+    {
+      "op": "if",
+      "var": "exists",
+      "equals": "true",
+      "then": [{ "op": "end", "outcome": "noop", "message": "{{params.email}} already exists" }]
+    },
+    { "op": "click", "target": { "role": { "role": "link", "name": "Add person" }, "text": "Add person" } },
+    { "op": "fill", "target": { "label": "Full name", "role": { "role": "textbox", "name": "Full name" } }, "value": "{{params.name}}" },
+    { "op": "fill", "target": { "label": "Work email", "role": { "role": "textbox", "name": "Work email" } }, "value": "{{params.email}}" },
+    { "op": "select", "target": { "label": "Role", "role": { "role": "combobox", "name": "Role" } }, "value": "{{params.role}}" },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Create person" }, "css": "main form button[type=submit]" }, "effect": true },
+    { "op": "assert", "target": { "role": { "role": "status" } }, "text": "Added {{params.name}}" }
+  ]
+}

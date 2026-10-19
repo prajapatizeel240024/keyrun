@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyrun · tasks</title>
+<style>
+  :root {
+    --bg:#f5f4f0; --panel:#fff; --ink:#1b1d21; --muted:#6a6f78; --line:#e2dfd6; --soft:#faf9f6;
+    --accent:#1f5f4a; --ok:#1f7a4d; --warn:#a15c00; --bad:#a3261b; --info:#2c5aa0;
+  }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
+  header { display:flex; align-items:center; gap:18px; padding:12px 24px; border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:wrap }
+  header .brand { font-weight:700; letter-spacing:-.01em; font-size:16px }
+  header nav a { color:var(--muted); text-decoration:none; margin-right:14px }
+  header nav a.on { color:var(--ink); font-weight:600 }
+  header .note { margin-left:auto; color:var(--muted); font-size:12.5px }
+  main { display:grid; grid-template-columns:minmax(0, 1.55fr) minmax(320px, 1fr); gap:18px; padding:18px 24px; max-width:1500px; margin:0 auto }
+  @media (max-width: 980px) { main { grid-template-columns:1fr; padding:16px } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; min-width:0 }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; font-weight:600 }
+  .stack { display:flex; flex-direction:column; gap:18px; min-width:0 }
+  form.enqueue { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px 10px; align-items:end }
+  label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted) }
+  input, select { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); min-width:0 }
+  button { font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:var(--soft); cursor:pointer; color:var(--ink) }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff }
+  button.danger { color:var(--bad) }
+  .msg { font-size:12.5px; color:var(--muted); grid-column:1 / -1; min-height:1em }
+  .msg.bad { color:var(--bad) }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px }
+  .filters button { padding:3px 10px; font-size:12px; border-radius:99px }
+  .filters button.on { background:var(--ink); color:#fff; border-color:var(--ink) }
+  .table-wrap { overflow-x:auto }
+  table { width:100%; border-collapse:collapse; font-size:13px }
+  th { text-align:left; color:var(--muted); font-weight:500; font-size:12px; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap }
+  td { padding:7px 8px; border-bottom:1px solid #f0eee8; vertical-align:top }
+  tbody tr { cursor:pointer }
+  tbody tr:hover { background:var(--soft) }
+  tbody tr.sel { background:#eef4f1 }
+  .mono { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px }
+  .muted { color:var(--muted) }
+  .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11.5px; font-weight:600; white-space:nowrap; border:1px solid transparent }
+  .b-succeeded { background:#e6f3ec; color:var(--ok) }
+  .b-noop { background:#eef1f5; color:#46566b }
+  .b-queued { background:#eaf0fa; color:var(--info) }
+  .b-leased { background:#fff3dd; color:var(--warn) }
+  .b-pending_approval { background:#fbf0d9; color:#7d5200; border-color:#ecd39c }
+  .b-failed, .b-dead { background:#fbe9e7; color:var(--bad) }
+  .b-rejected { background:#f1efea; color:var(--muted) }
+  .detail dl { display:grid; grid-template-columns:110px 1fr; gap:4px 10px; margin:0 0 12px }
+  .detail dt { color:var(--muted) }
+  .detail dd { margin:0; overflow-wrap:anywhere }
+  .timeline { list-style:none; padding:0; margin:0; border-left:2px solid var(--line) }
+  .timeline li { padding:2px 0 8px 12px; position:relative }
+  .timeline li::before { content:""; position:absolute; left:-6px; top:7px; width:10px; height:10px; border-radius:50%; background:var(--line) }
+  .timeline li.ev-succeeded::before { background:var(--ok) } .timeline li.ev-failed::before, .timeline li.ev-dead::before { background:var(--bad) }
+  .timeline li.ev-leased::before { background:var(--warn) } .timeline li.ev-lease_expired::before { background:#d48b00 }
+  .timeline li.ev-approved::before { background:var(--accent) } .timeline li.ev-stale_report_rejected::before { background:#7a4ea0 }
+  .timeline .t { font-weight:600 } .timeline .when { color:var(--muted); font-size:12px; margin-left:6px }
+  .timeline .d { color:var(--muted); font-size:12.5px; overflow-wrap:anywhere }
+  .approve { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0 14px; padding:10px; border:1px dashed #ecd39c; border-radius:8px; background:#fffaf0 }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px; padding:0 24px 24px; max-width:1500px; margin:0 auto }
+  @media (max-width: 980px) { .cards { padding:0 16px 16px } }
+  .row { padding:8px 0; border-bottom:1px solid #f0eee8 }
+  .row:last-child { border-bottom:0 }
+  .policy-edit { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px }
+  .policy-edit .full { grid-column:1 / -1 }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px }
+  .empty { color:var(--muted); padding:18px 0; text-align:center }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Keyrun</span>
+  <nav><a class="on" href="/">Tasks</a><a href="/builder">Workflow editor</a></nav>
+  <span class="note">Control plane · 127.0.0.1 · stores ciphertext only, runs no browser</span>
+</header>
+
+<main>
+  <div class="stack">
+    <section>
+      <h2>Queue a task</h2>
+      <form class="enqueue" id="enqueue">
+        <label>App<select name="app" id="f-app"></select></label>
+        <label>Task<select name="kind" id="f-kind"></select></label>
+        <label>Email<input name="email" placeholder="dara.silva@example.test"></label>
+        <label>Name<input name="name" placeholder="Dara Silva"></label>
+        <label>Role<input name="role" placeholder="Employee"></label>
+        <label>Requested by<input name="requestedBy" value="alex"></label>
+        <label style="grid-column:span 2">Idempotency key<input name="idempotencyKey" id="f-key" class="mono" placeholder="auto"></label>
+        <button class="primary" type="submit">Queue</button>
+        <div class="msg" id="enqueue-msg"></div>
+      </form>
+    </section>
+    <section>
+      <h2>Tasks</h2>
+      <div class="filters" id="filters"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Created</th><th>App · task</th><th>Target</th><th>Status</th><th>Try</th><th>Device</th><th>Result</th></tr></thead>
+          <tbody id="tasks"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <section class="detail" id="detail"><h2>Task</h2><p class="muted">Select a task to see its history.</p></section>
+</main>
+
+<div class="cards">
+  <section><h2>Apps and policies</h2><div id="apps"></div></section>
+  <section><h2>Devices</h2><div id="devices"></div></section>
+  <section><h2>Credentials (server copy)</h2><div id="creds"></div></section>
+</div>
+
+<script>
+(function () {
+  var state = { tasks: [], overview: null, selected: null, filter: 'all' };
+  var KINDS_NEEDING = { create_user: ['email', 'name', 'role'], remove_user: ['email'], rotate_password: [], sign_in: [] };
+
+  function api(method, path, body) {
+    return fetch('/api/admin' + path, { method: method, headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.statusText); return j; }); });
+  }
+  // Tiny DOM builder: every string goes in as text, never as HTML.
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    for (var k in (attrs || {})) {
+      if (k === 'class') el.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== undefined && attrs[k] !== null) el.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c === null || c === undefined || c === false) continue;
+      (Array.isArray(c) ? c : [c]).forEach(function (x) { el.appendChild(typeof x === 'object' ? x : document.createTextNode(String(x))); });
+    }
+    return el;
+  }
+  function ago(ts) {
+    var s = Math.round((Date.now() - new Date(ts).getTime()) / 1000);
+    if (s < 60) return s + 's ago'; if (s < 3600) return Math.round(s / 60) + 'm ago'; return new Date(ts).toLocaleString();
+  }
+  function statusOf(t) {
+    if (t.status === 'succeeded' && t.result && t.result.outcome === 'noop') return 'noop';
+    return t.status;
+  }
+  function badge(t) {
+    var s = statusOf(t);
+    var label = { pending_approval: 'needs approval', noop: 'no change needed' }[s] || s;
+    if (t.lease_expired) label += ' (lease expired)';
+    return h('span', { class: 'badge b-' + s }, label);
+  }
+
+  // ---------- enqueue ----------
+  var form = document.getElementById('enqueue');
+  var fApp = document.getElementById('f-app'), fKind = document.getElementById('f-kind'), fKey = document.getElementById('f-key');
+  function syncKinds() {
+    var kinds = (state.overview ? state.overview.workflows : []).filter(function (w) { return w.app_id === fApp.value; }).map(function (w) { return w.kind; });
+    var cur = fKind.value;
+    fKind.replaceChildren.apply(fKind, kinds.map(function (k) { return h('option', { value: k }, k); }));
+    if (kinds.indexOf(cur) >= 0) fKind.value = cur;
+    syncFields();
+  }
+  function syncFields() {
+    var need = KINDS_NEEDING[fKind.value] || [];
+    ['email', 'name', 'role'].forEach(function (n) { form.elements[n].disabled = need.indexOf(n) < 0; });
+  }
+  fApp.addEventListener('change', syncKinds);
+  fKind.addEventListener('change', syncFields);
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var params = {};
+    (KINDS_NEEDING[fKind.value] || []).forEach(function (n) { if (form.elements[n].value) params[n] = form.elements[n].value.trim(); });
+    // Default key: same app, task and target on the same day is the same request.
+    var key = fKey.value.trim() || [fApp.value, fKind.value, params.email || 'self', new Date().toISOString().slice(0, 10)].join(':');
+    var msg = document.getElementById('enqueue-msg');
+    api('POST', '/tasks', { app: fApp.value, kind: fKind.value, params: params, idempotencyKey: key, requestedBy: form.elements.requestedBy.value.trim() || 'dashboard' })
+      .then(function (r) {
+        msg.className = 'msg';
+        msg.textContent = r.deduplicated ? 'Same idempotency key as an existing task: showing that one instead of queuing a duplicate.' : 'Queued' + (r.task.status === 'pending_approval' ? ', waiting for approval.' : '.');
+        state.selected = r.task.id; refresh();
+      })
+      .catch(function (e) { msg.className = 'msg bad'; msg.textContent = e.message; });
+  });
+
+  // ---------- tasks ----------
+  var FILTERS = ['all', 'pending_approval', 'queued', 'leased', 'succeeded', 'failed', 'dead'];
+  function renderFilters() {
+    var box = document.getElementById('filters');
+    box.replaceChildren.apply(box, FILTERS.map(function (f) {
+      var n = f === 'all' ? state.tasks.length : state.tasks.filter(function (t) { return t.status === f; }).length;
+      return h('button', { type: 'button', class: state.filter === f ? 'on' : '', onclick: function () { state.filter = f; renderTasks(); renderFilters(); } },
+        (f === 'pending_approval' ? 'needs approval' : f) + ' ' + n);
+    }));
+  }
+  function renderTasks() {
+    var body = document.getElementById('tasks');
+    var rows = state.tasks.filter(function (t) { return state.filter === 'all' || t.status === state.filter; });
+    if (!rows.length) { body.replaceChildren(h('tr', {}, h('td', { colspan: 7, class: 'empty' }, 'No tasks yet.'))); return; }
+    body.replaceChildren.apply(body, rows.map(function (t) {
+      var target = t.params.email || (t.kind === 'rotate_password' ? 'admin account' : '—');
+      var res = t.result ? (t.result.failure ? t.result.failure.reason : t.result.message) : (t.last_error || '');
+      return h('tr', { class: state.selected === t.id ? 'sel' : '', onclick: function () { state.selected = t.id; renderTasks(); loadDetail(); } },
+        h('td', { class: 'muted', title: t.created_at }, ago(t.created_at)),
+        h('td', {}, h('strong', {}, t.app_id), ' · ', t.kind),
+        h('td', { class: 'mono' }, target),
+        h('td', {}, badge(t)),
+        h('td', {}, t.attempts + '/' + t.max_attempts),
+        h('td', { class: 'muted' }, t.lease_device_name || ''),
+        h('td', { class: 'muted' }, String(res).slice(0, 70)));
+    }));
+  }
+
+  // ---------- detail ----------
+  function loadDetail() {
+    if (!state.selected) return;
+    api('GET', '/tasks/' + state.selected).then(renderDetail).catch(function () {});
+  }
+  function renderDetail(d) {
+    var t = d.task, box = document.getElementById('detail');
+    var kids = [h('h2', {}, 'Task'),
+      h('dl', {},
+        h('dt', {}, 'Task'), h('dd', {}, h('strong', {}, t.app_id + ' · ' + t.kind), ' ', badge(t)),
+        h('dt', {}, 'Id'), h('dd', { class: 'mono' }, t.id),
+        h('dt', {}, 'Idempotency'), h('dd', { class: 'mono' }, t.idempotency_key),
+        h('dt', {}, 'Params'), h('dd', { class: 'mono' }, JSON.stringify(t.params)),
+        h('dt', {}, 'Requested by'), h('dd', {}, t.requested_by + (t.approved_by ? ' · decided by ' + t.approved_by : '')),
+        h('dt', {}, 'Attempts'), h('dd', {}, t.attempts + ' of ' + t.max_attempts + (t.status === 'queued' && new Date(t.not_before) > new Date() ? ' · next try ' + new Date(t.not_before).toLocaleTimeString() : '')),
+        t.lease_expires_at && t.status === 'leased' ? [h('dt', {}, 'Lease'), h('dd', {}, (t.lease_expired ? 'expired ' : 'until ') + new Date(t.lease_expires_at).toLocaleTimeString())] : null,
+        t.result ? [h('dt', {}, 'Result'), h('dd', {}, t.result.message + (t.result.failure ? ' [' + t.result.failure.reason + ']' : '') + (t.result.replayed ? ' (answered from the device journal)' : ''))] : null)];
+    if (t.status === 'pending_approval') {
+      var who = h('input', { placeholder: 'Your name', value: 'sam', 'aria-label': 'Approver' });
+      var note = h('span', { class: 'muted' }, 'Someone other than ' + t.requested_by + ' must approve.');
+      kids.push(h('div', { class: 'approve' }, who,
+        h('button', { class: 'primary', type: 'button', onclick: function () { decide('approve', who.value); } }, 'Approve'),
+        h('button', { class: 'danger', type: 'button', onclick: function () { decide('reject', who.value); } }, 'Reject'), note));
+    }
+    kids.push(h('h2', {}, 'History'));
+    kids.push(h('ul', { class: 'timeline' }, d.events.map(function (e) {
+      var detail = Object.keys(e.detail || {}).length ? JSON.stringify(e.detail) : '';
+      return h('li', { class: 'ev-' + e.type },
+        h('span', { class: 't' }, e.type.replace(/_/g, ' ')),
+        e.attempt ? h('span', { class: 'muted' }, ' · attempt ' + e.attempt) : null,
+        e.device_name ? h('span', { class: 'muted' }, ' · ' + e.device_name) : null,
+        h('span', { class: 'when' }, new Date(e.at).toLocaleTimeString()),
+        detail ? h('div', { class: 'd mono' }, detail) : null);
+    })));
+    box.replaceChildren.apply(box, kids);
+  }
+  function decide(action, who) {
+    api('POST', '/tasks/' + state.selected + '/' + action, { by: who }).then(refresh).catch(function (e) { alertBox(e.message); });
+  }
+  function alertBox(m) { var box = document.getElementById('detail'); box.insertBefore(h('p', { class: 'msg bad' }, m), box.children[1] || null); }
+
+  // ---------- overview cards ----------
+  function renderOverview() {
+    var o = state.overview;
+    var appSel = fApp.value;
+    fApp.replaceChildren.apply(fApp, o.apps.map(function (a) { return h('option', { value: a.id }, a.name); }));
+    if (appSel) fApp.value = appSel;
+    syncKinds();
+    var apps = document.getElementById('apps');
+    apps.replaceChildren.apply(apps, o.apps.map(function (a) {
+      var start = h('input', { value: a.policy.allowedHours ? a.policy.allowedHours.start : '', placeholder: '09:00', 'aria-label': 'Start' });
+      var end = h('input', { value: a.policy.allowedHours ? a.policy.allowedHours.end : '', placeholder: '18:00', 'aria-label': 'End' });
+      var tz = h('input', { class: 'full', value: a.policy.timezone, 'aria-label': 'Time zone' });
+      var appr = h('input', { class: 'full', value: a.policy.requireApproval.join(', '), 'aria-label': 'Kinds needing approval' });
+      var out = h('div', { class: 'msg' });
+      return h('div', { class: 'row' },
+        h('div', {}, h('span', { class: 'dot', style: 'background:' + (a.openNow ? 'var(--ok)' : 'var(--bad)') }), h('strong', {}, a.name), ' ',
+          h('span', { class: 'muted mono' }, a.base_url)),
+        h('div', { class: 'muted' }, 'Runs ' + a.window + (a.openNow ? ' · open now' : ' · closed now') + ' · approval: ' + (a.policy.requireApproval.join(', ') || 'none')),
+        h('details', {}, h('summary', { class: 'muted' }, 'Edit policy'),
+          h('div', { class: 'policy-edit' }, start, end, tz, appr,
+            h('button', { type: 'button', class: 'full', onclick: function () {
+              var p = { timezone: tz.value.trim() || 'UTC', requireApproval: appr.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) };
+              if (start.value && end.value) p.allowedHours = { start: start.value.trim(), end: end.value.trim() };
+              api('PUT', '/apps/' + a.id + '/policy', p).then(function () { out.textContent = 'Saved.'; loadOverview(); }).catch(function (e) { out.textContent = e.message; });
+            } }, 'Save policy'), out)));
+    }));
+    var dev = document.getElementById('devices');
+    dev.replaceChildren.apply(dev, o.devices.length ? o.devices.map(function (d) {
+      return h('div', { class: 'row' }, h('strong', {}, d.name), h('div', { class: 'muted' }, 'Last seen ' + (d.last_seen_at ? ago(d.last_seen_at) : 'never')),
+        h('div', { class: 'mono muted' }, 'X25519 public key ' + d.public_key.slice(0, 20) + '…'));
+    }) : [h('p', { class: 'muted' }, 'No devices yet. Run: npm run agent -- enroll --name my-laptop')]);
+    var cr = document.getElementById('creds');
+    cr.replaceChildren.apply(cr, o.credentials.length ? o.credentials.map(function (c) {
+      return h('div', { class: 'row' }, h('strong', {}, c.app_id + ' / ' + c.label), ' ', h('span', { class: 'muted' }, 'v' + c.version),
+        h('div', { class: 'mono muted' }, c.ciphertext_bytes + ' bytes of ciphertext · ' + c.ciphertext_head + '…'),
+        h('div', { class: 'muted' }, 'Sealed for: ' + c.devices.join(', ')));
+    }) : [h('p', { class: 'muted' }, 'None. Credentials are added on a device: npm run agent -- cred add')]);
+  }
+
+  function loadOverview() { return api('GET', '/overview').then(function (o) { state.overview = o; renderOverview(); }); }
+  function refresh() {
+    return api('GET', '/tasks').then(function (ts) { state.tasks = ts; renderFilters(); renderTasks(); loadDetail(); });
+  }
+  loadOverview().then(refresh);
+  setInterval(refresh, 2000);
+  setInterval(loadOverview, 6000);
+})();
+</script>
+</body>
+</html>

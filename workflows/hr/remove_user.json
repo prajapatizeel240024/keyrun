@@ -1,0 +1,60 @@
+{
+  "id": "hr.remove_user",
+  "app": "hr",
+  "kind": "remove_user",
+  "version": 1,
+  "description": "Remove a person from Mock HR, only if they are there. Confirms in a modal.",
+  "params": {
+    "email": { "description": "Work email of the person to remove", "example": "dara.silva@example.test" }
+  },
+  "secrets": ["username", "password"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/login" },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Work email", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in']", "role": { "role": "button", "name": "Sign in" }, "css": "button[type=submit]" }
+    },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Main" }, "css": "nav" } }
+  ],
+  "steps": [
+    { "op": "navigate", "url": "{{baseUrl}}/people", "checkpoint": true },
+    {
+      "op": "findInPages",
+      "row": { "role": { "role": "row" }, "css": "tbody tr" },
+      "match": "{{params.email}}",
+      "ready": { "text": "Page ", "css": "nav[aria-label=Pagination] span:not([aria-disabled])" },
+      "next": { "role": { "role": "link", "name": "Next", "exact": true }, "css": "nav[aria-label=Pagination] a[href*='page=']:last-child" },
+      "saveAs": "exists"
+    },
+    {
+      "op": "if",
+      "var": "exists",
+      "equals": "false",
+      "then": [{ "op": "end", "outcome": "noop", "message": "{{params.email}} is not in Mock HR" }]
+    },
+    {
+      "op": "click",
+      "target": {
+        "role": { "role": "button", "name": "Remove" },
+        "text": "Remove",
+        "within": { "role": { "role": "row" }, "css": "tbody tr", "hasExactText": "{{params.email}}" }
+      }
+    },
+    {
+      "op": "click",
+      "target": { "role": { "role": "button", "name": "Remove person" }, "css": "button[type=submit]", "within": { "role": { "role": "dialog", "name": "Remove" } } },
+      "effect": true
+    },
+    { "op": "assert", "target": { "role": { "role": "status" } }, "text": "Removed" }
+  ]
+}

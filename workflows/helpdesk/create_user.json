@@ -1,0 +1,57 @@
+{
+  "id": "helpdesk.create_user",
+  "app": "helpdesk",
+  "kind": "create_user",
+  "version": 1,
+  "description": "Invite an agent to Mock Helpdesk, only if no active agent has that email.",
+  "params": {
+    "email": { "description": "Email of the new agent", "example": "noor.tanaka@example.test" },
+    "name": { "description": "Full name", "example": "Noor Tanaka" },
+    "role": { "description": "Agent, Supervisor or Admin", "example": "Agent" }
+  },
+  "secrets": ["username", "password", "totpSecret"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/#/login" },
+    {
+      "op": "fill",
+      "target": { "label": "Email", "placeholder": "you@company.com", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "label": "Password", "placeholder": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Continue" } } },
+    {
+      "op": "fill",
+      "target": { "role": { "role": "textbox", "name": "Authentication code" }, "css": "input[autocomplete=one-time-code]" },
+      "value": "{{totp}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Verify" } } },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Sidebar" } } }
+  ],
+  "steps": [
+    { "op": "navigate", "url": "{{baseUrl}}/#/agents", "checkpoint": true },
+    {
+      "op": "findInPages",
+      "row": { "role": { "role": "listitem" }, "css": "ul[aria-label=Agents] > li" },
+      "match": "{{params.email}}",
+      "ready": { "text": "Page ", "css": "main span" },
+      "next": { "role": { "role": "button", "name": "Next page" } },
+      "saveAs": "exists"
+    },
+    {
+      "op": "if",
+      "var": "exists",
+      "equals": "true",
+      "then": [{ "op": "end", "outcome": "noop", "message": "{{params.email}} is already an agent" }]
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Invite agent" } } },
+    { "op": "fill", "target": { "role": { "role": "textbox", "name": "Full name" }, "label": "Full name" }, "value": "{{params.name}}" },
+    { "op": "fill", "target": { "role": { "role": "textbox", "name": "Email" }, "label": "Email" }, "value": "{{params.email}}" },
+    { "op": "select", "target": { "role": { "role": "combobox", "name": "Role" }, "label": "Role" }, "value": "{{params.role}}" },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Send invite" }, "css": "main button" }, "effect": true },
+    { "op": "assert", "target": { "role": { "role": "status" } }, "text": "Invitation sent to {{params.email}}" }
+  ]
+}

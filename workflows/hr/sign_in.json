@@ -1,0 +1,30 @@
+{
+  "id": "hr.sign_in",
+  "app": "hr",
+  "kind": "sign_in",
+  "version": 1,
+  "description": "Sign in to Mock HR (login form inside an iframe) and confirm the dashboard loads.",
+  "params": {},
+  "secrets": ["username", "password"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/login" },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Work email", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in']", "label": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in']", "role": { "role": "button", "name": "Sign in" }, "css": "button[type=submit]" }
+    },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Main" }, "css": "nav" } }
+  ],
+  "steps": [
+    { "op": "assert", "target": { "role": { "role": "heading", "name": "Welcome back" }, "css": "h1" }, "text": "Welcome back" }
+  ]
+}

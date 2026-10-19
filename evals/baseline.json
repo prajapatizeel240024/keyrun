@@ -1,0 +1,116 @@
+{
+  "createdAt": "2026-10-19T21:41:48.730Z",
+  "source": "evals/results/summary.json",
+  "runsPerWorkflow": 50,
+  "silentFailures": 0,
+  "rates": {
+    "overall": {
+      "rate": 100,
+      "runs": 600
+    },
+    "app:hr": {
+      "rate": 100,
+      "runs": 200
+    },
+    "app:helpdesk": {
+      "rate": 100,
+      "runs": 200
+    },
+    "app:directory": {
+      "rate": 100,
+      "runs": 200
+    },
+    "workflow:directory.create_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:directory.remove_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:directory.rotate_password": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:directory.sign_in": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:helpdesk.create_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:helpdesk.remove_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:helpdesk.rotate_password": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:helpdesk.sign_in": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:hr.create_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:hr.remove_user": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:hr.rotate_password": {
+      "rate": 100,
+      "runs": 50
+    },
+    "workflow:hr.sign_in": {
+      "rate": 100,
+      "runs": 50
+    },
+    "mess:random_ids": {
+      "rate": 100,
+      "runs": 535
+    },
+    "mess:iframe_login": {
+      "rate": 100,
+      "runs": 400
+    },
+    "mess:totp": {
+      "rate": 100,
+      "runs": 400
+    },
+    "mess:cookie_banner": {
+      "rate": 100,
+      "runs": 211
+    },
+    "mess:slow_spa": {
+      "rate": 100,
+      "runs": 200
+    },
+    "mess:session_expired": {
+      "rate": 100,
+      "runs": 109
+    },
+    "mess:pagination": {
+      "rate": 100,
+      "runs": 177
+    },
+    "mess:confirm_modal": {
+      "rate": 100,
+      "runs": 127
+    },
+    "mess:announcement": {
+      "rate": 100,
+      "runs": 29
+    },
+    "mess:label_drift": {
+      "rate": 100,
+      "runs": 132
+    },
+    "mess:unknown_popup": {
+      "rate": 100,
+      "runs": 15
+    }
+  }
+}

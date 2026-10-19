@@ -1,0 +1,34 @@
+{
+  "id": "helpdesk.sign_in",
+  "app": "helpdesk",
+  "kind": "sign_in",
+  "version": 1,
+  "description": "Sign in to Mock Helpdesk (slow SPA, password then TOTP) and confirm the home screen loads.",
+  "params": {},
+  "secrets": ["username", "password", "totpSecret"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/#/login" },
+    {
+      "op": "fill",
+      "note": "The visible 'Email' label is not wired to the input, so the placeholder strategy usually wins.",
+      "target": { "label": "Email", "placeholder": "you@company.com", "css": "input[type=email]" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "label": "Password", "placeholder": "Password", "css": "input[type=password]" },
+      "value": "{{secrets.password}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Continue" } } },
+    {
+      "op": "fill",
+      "target": { "role": { "role": "textbox", "name": "Authentication code" }, "css": "input[autocomplete=one-time-code]" },
+      "value": "{{totp}}"
+    },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Verify" } } },
+    { "op": "wait", "target": { "role": { "role": "navigation", "name": "Sidebar" } } }
+  ],
+  "steps": [
+    { "op": "assert", "target": { "role": { "role": "heading", "name": "Hi " }, "css": "main h1" }, "text": "Hi" }
+  ]
+}

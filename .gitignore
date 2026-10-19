@@ -1,0 +1,8 @@
+node_modules/
+.env
+# Runtime state written by the local agent (device keys, journal). Never commit.
+.keyrun-agent/
+# Failure screenshots and traces. They stay on the device.
+artifacts/
+# Recorder drafts
+workflows/drafts/

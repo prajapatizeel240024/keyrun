@@ -1,0 +1,42 @@
+{
+  "name": "keyrun",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A browser agent that signs users into messy web apps and runs admin tasks on their own device, with credentials the server never sees.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:setup": "tsx src/db/setup.ts",
+    "demo": "tsx scripts/demo.ts",
+    "demo:setup": "tsx scripts/demo-setup.ts",
+    "mocks": "tsx src/mocks/main.ts",
+    "server": "tsx src/server/main.ts",
+    "agent": "tsx src/agent/cli.ts",
+    "record": "tsx src/recorder/cli.ts",
+    "run:workflow": "tsx src/engine/cli.ts",
+    "eval": "tsx src/evals/run.ts",
+    "eval:gate": "tsx src/evals/gate.ts",
+    "eval:baseline": "tsx src/evals/gate.ts --update-baseline",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "tsx --test --test-concurrency=1 --test-reporter=spec test/*.test.ts",
+    "ci": "npm run typecheck && npm test && npm run eval -- --runs 50 && npm run eval:gate"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "libsodium-wrappers-sumo": "^0.8.4",
+    "pg": "^8.23.1",
+    "playwright": "^1.56.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/libsodium-wrappers-sumo": "^0.7.8",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

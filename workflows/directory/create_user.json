@@ -1,0 +1,67 @@
+{
+  "id": "directory.create_user",
+  "app": "directory",
+  "kind": "create_user",
+  "version": 1,
+  "description": "Add a member to Mock Directory, only if the email is not there yet. Uses the search box, then pages through results.",
+  "params": {
+    "email": { "description": "Email of the new member", "example": "wen.okafor@example.test" },
+    "name": { "description": "Display name", "example": "Wen Okafor" },
+    "role": { "description": "Reader, Editor or Owner", "example": "Reader" }
+  },
+  "secrets": ["username", "password", "totpSecret"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/login" },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Username", "testId": "login-username" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Password", "testId": "login-password" },
+      "value": "{{secrets.password}}"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "role": { "role": "button", "name": "Next" }, "testId": "login-next" }
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Digit 1", "exact": true, "css": "input[data-otp='1']" },
+      "value": "{{totp}}",
+      "mode": "type"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "role": { "role": "button", "name": "Verify" }, "testId": "otp-submit" }
+    },
+    { "op": "wait", "target": { "role": { "role": "link", "name": "Members" }, "testId": "nav-members" } }
+  ],
+  "steps": [
+    { "op": "navigate", "url": "{{baseUrl}}/members", "checkpoint": true },
+    { "op": "fill", "target": { "role": { "role": "searchbox", "name": "Search members" }, "testId": "member-search" }, "value": "{{params.email}}" },
+    { "op": "press", "target": { "role": { "role": "searchbox", "name": "Search members" }, "testId": "member-search" }, "key": "Enter" },
+    { "op": "wait", "url": "q=" },
+    {
+      "op": "findInPages",
+      "row": { "testId": "member-row", "css": "tbody tr" },
+      "match": "{{params.email}}",
+      "ready": { "text": "· page", "css": "p" },
+      "next": { "role": { "role": "link", "name": "Next" }, "testId": "next-page" },
+      "saveAs": "exists"
+    },
+    {
+      "op": "if",
+      "var": "exists",
+      "equals": "true",
+      "then": [{ "op": "end", "outcome": "noop", "message": "{{params.email}} is already a member" }]
+    },
+    { "op": "click", "target": { "role": { "role": "link", "name": "New member" }, "testId": "add-member" } },
+    { "op": "fill", "target": { "label": "Display name", "testId": "member-name" }, "value": "{{params.name}}" },
+    { "op": "fill", "target": { "label": "Email address", "testId": "member-email" }, "value": "{{params.email}}" },
+    { "op": "check", "target": { "role": { "role": "radio", "name": "{{params.role}}", "exact": true }, "label": "{{params.role}}" } },
+    { "op": "click", "target": { "role": { "role": "button", "name": "Add member" }, "testId": "member-submit" }, "effect": true },
+    { "op": "assert", "target": { "role": { "role": "status" } }, "text": "added" }
+  ]
+}

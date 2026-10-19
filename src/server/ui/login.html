@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyrun · sign in</title>
+<style>
+  :root { --bg:#f5f4f0; --ink:#1b1d21; --muted:#6a6f78; --line:#dedbd2; --accent:#1f5f4a; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--ink);
+         font:15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
+  form { background:#fff; border:1px solid var(--line); border-radius:12px; padding:28px 30px; width:min(360px, calc(100vw - 32px)); }
+  h1 { font-size:20px; margin:0 0 4px; letter-spacing:-.01em }
+  p { color:var(--muted); margin:0 0 18px; font-size:14px }
+  input { width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font:inherit }
+  button { margin-top:14px; width:100%; padding:9px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:inherit; cursor:pointer }
+  .err { color:#a3261b }
+</style>
+</head>
+<body>
+<form method="post" action="/login">
+  <h1>Keyrun</h1>
+  <p>Control plane, local only. Enter the admin token (KEYRUN_ADMIN_TOKEN).</p>
+  <!--error-->
+  <input name="token" type="password" placeholder="Admin token" autocomplete="current-password" autofocus aria-label="Admin token">
+  <button type="submit">Open dashboard</button>
+</form>
+</body>
+</html>

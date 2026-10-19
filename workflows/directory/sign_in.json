@@ -1,0 +1,41 @@
+{
+  "id": "directory.sign_in",
+  "app": "directory",
+  "kind": "sign_in",
+  "version": 1,
+  "description": "Sign in to Mock Directory (two-step iframe login with a 6-box TOTP) and confirm the overview loads.",
+  "params": {},
+  "secrets": ["username", "password", "totpSecret"],
+  "login": [
+    { "op": "navigate", "url": "{{baseUrl}}/login" },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Username", "testId": "login-username" },
+      "value": "{{secrets.username}}"
+    },
+    {
+      "op": "fill",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Password", "testId": "login-password" },
+      "value": "{{secrets.password}}"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "role": { "role": "button", "name": "Next" }, "testId": "login-next" }
+    },
+    {
+      "op": "fill",
+      "note": "Six one-digit boxes that auto-advance: type the code like a person would.",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "label": "Digit 1", "exact": true, "css": "input[data-otp='1']" },
+      "value": "{{totp}}",
+      "mode": "type"
+    },
+    {
+      "op": "click",
+      "target": { "frame": "iframe[title='Sign in to Directory']", "role": { "role": "button", "name": "Verify" }, "testId": "otp-submit" }
+    },
+    { "op": "wait", "target": { "role": { "role": "link", "name": "Members" }, "testId": "nav-members" } }
+  ],
+  "steps": [
+    { "op": "assert", "target": { "role": { "role": "heading", "name": "Directory overview" } }, "text": "Directory overview" }
+  ]
+}

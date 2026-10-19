@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  body { width: 300px; margin: 0; padding: 14px; font: 13px/1.45 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; color: #1b1d21; background: #f5f4f0 }
+  h1 { font-size: 15px; margin: 0 0 2px }
+  p { margin: 0 0 10px; color: #6a6f78; font-size: 12px }
+  label { display: block; font-size: 11.5px; color: #6a6f78; margin-top: 6px }
+  input { width: 100%; box-sizing: border-box; padding: 5px 7px; border: 1px solid #dedbd2; border-radius: 6px; font: inherit }
+  .row { display: flex; gap: 6px; margin-top: 10px }
+  button { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #dedbd2; background: #fff; cursor: pointer; font: inherit }
+  button.primary { background: #1f5f4a; color: #fff; border-color: #1f5f4a }
+  #status { margin-top: 10px; font-size: 12px }
+  .rec { color: #a3261b; font-weight: 600 }
+</style>
+</head>
+<body>
+  <h1>Keyrun Recorder</h1>
+  <p>Records clicks and typing on local apps. Passwords and codes become placeholders.</p>
+  <label>App id <input id="app" value="hr"></label>
+  <label>Task kind <input id="kind" value="recorded_task"></label>
+  <div class="row"><button class="primary" id="start">Start on this tab</button><button id="stop">Stop</button></div>
+  <label>Keyrun server <input id="server" value="http://127.0.0.1:4000"></label>
+  <label>Admin token <input id="token" type="password" value="dev-admin-token"></label>
+  <div class="row"><button id="upload">Send to workflow editor</button></div>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

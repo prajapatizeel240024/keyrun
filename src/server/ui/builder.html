@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyrun · workflow editor</title>
+<style>
+  :root { --bg:#f5f4f0; --panel:#fff; --ink:#1b1d21; --muted:#6a6f78; --line:#e2dfd6; --soft:#faf9f6; --accent:#1f5f4a; --bad:#a3261b; --ok:#1f7a4d; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 ui-sans-serif, -apple-system, "Segoe UI", sans-serif }
+  header { display:flex; align-items:center; gap:18px; padding:12px 24px; border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:wrap }
+  header .brand { font-weight:700; font-size:16px }
+  header nav a { color:var(--muted); text-decoration:none; margin-right:14px }
+  header nav a.on { color:var(--ink); font-weight:600 }
+  .layout { display:grid; grid-template-columns:240px minmax(0,1fr) minmax(300px, 0.8fr); gap:18px; padding:18px 24px; max-width:1600px; margin:0 auto }
+  .layout > section:first-child, .layout > section:last-child { position:sticky; top:12px; align-self:start; max-height:calc(100vh - 24px); overflow:auto }
+  @media (max-width: 1100px) { .layout { grid-template-columns:1fr; padding:16px } .layout > section { position:static; max-height:none } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-width:0 }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 10px; font-weight:600 }
+  h3 { font-size:14px; margin:18px 0 8px }
+  .wf-list button { display:block; width:100%; text-align:left; margin:0 0 4px; padding:7px 9px; border:1px solid transparent; background:none; border-radius:6px; cursor:pointer; font:inherit; color:var(--ink) }
+  .wf-list button:hover { background:var(--soft) }
+  .wf-list button.on { border-color:var(--line); background:var(--soft); font-weight:600 }
+  .wf-list .k { color:var(--muted); font-size:12px }
+  label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted) }
+  input, select, textarea { font:inherit; padding:5px 7px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); min-width:0; width:100% }
+  textarea { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px }
+  button { font:inherit; padding:5px 11px; border-radius:6px; border:1px solid var(--line); background:var(--soft); cursor:pointer; color:var(--ink) }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:6px 10px }
+  .step { border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px; background:var(--soft) }
+  .step-head { display:flex; gap:6px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
+  .step-head .n { font-weight:700; color:var(--muted); width:22px }
+  .step-head select { width:auto }
+  .step-head .tools { margin-left:auto; display:flex; gap:4px }
+  .step-head .tools button { padding:2px 8px }
+  .target { border-left:3px solid #cfe2d8; padding-left:8px; margin-top:6px }
+  .hint { color:var(--muted); font-size:12px }
+  .flags { display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--muted) }
+  .flags label { flex-direction:row; align-items:center; gap:4px }
+  .flags input { width:auto }
+  .msgs { font-size:12.5px; white-space:pre-wrap; margin-top:8px }
+  .msgs.bad { color:var(--bad) } .msgs.ok { color:var(--ok) }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 }
+  .params td { padding:3px 4px } .params td:first-child { width:30% }
+  #json { min-height:420px; height:calc(100vh - 230px) }
+  .mono { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Keyrun</span>
+  <nav><a href="/">Tasks</a><a class="on" href="/builder">Workflow editor</a></nav>
+  <span class="hint" style="margin-left:auto">Elements are looked up by role → label → placeholder → text → test id → CSS. Give each step at least two.</span>
+</header>
+<div class="layout">
+  <section>
+    <h2>Workflows</h2>
+    <div class="wf-list" id="list"></div>
+    <h3>New</h3>
+    <div class="actions"><button type="button" id="blank">Blank workflow</button></div>
+    <p class="hint">Recorder drafts appear here after <code>npm run record -- … --upload</code>.</p>
+  </section>
+  <section id="editor"><h2>Editor</h2><p class="hint">Pick a workflow on the left.</p></section>
+  <section>
+    <h2>JSON</h2>
+    <textarea id="json" spellcheck="false"></textarea>
+    <div class="actions">
+      <button type="button" id="apply">Apply JSON to editor</button>
+      <button type="button" id="validate">Validate</button>
+      <button type="button" class="primary" id="save">Save as new version</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+  </section>
+</div>
+<script>
+(function () {
+  var OPS = ['navigate', 'fill', 'click', 'select', 'check', 'press', 'wait', 'assert', 'findInPages', 'if', 'end'];
+  var STRATS = [['role', 'Role (button, link, textbox…)'], ['name', 'Accessible name'], ['label', 'Label'], ['placeholder', 'Placeholder'], ['text', 'Text'], ['testId', 'Test id'], ['css', 'CSS'], ['frame', 'In iframe (CSS)'], ['hasExactText', 'Containing exact text']];
+  var wf = null, current = null;
+
+  function api(method, path, body) {
+    return fetch('/api/admin' + path, { method: method, headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.statusText); return j; }); });
+  }
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    for (var k in (attrs || {})) {
+      if (k === 'class') el.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), attrs[k]);
+      else if (k === 'value') el.value = attrs[k];
+      else if (k === 'checked') el.checked = !!attrs[k];
+      else if (attrs[k] !== undefined && attrs[k] !== null && attrs[k] !== false) el.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c === null || c === undefined || c === false) continue;
+      (Array.isArray(c) ? c : [c]).forEach(function (x) { el.appendChild(typeof x === 'object' ? x : document.createTextNode(String(x))); });
+    }
+    return el;
+  }
+  function msg(text, ok) { var m = document.getElementById('msgs'); m.className = 'msgs ' + (ok ? 'ok' : 'bad'); m.textContent = text; }
+  function syncJson() { document.getElementById('json').value = JSON.stringify(wf, null, 2); }
+  function clean(o) { Object.keys(o).forEach(function (k) { if (o[k] === '' || o[k] === undefined) delete o[k]; }); return o; }
+
+  // ---------- list ----------
+  function loadList(selectId, note) {
+    return api('GET', '/overview').then(function (o) {
+      var box = document.getElementById('list');
+      box.replaceChildren.apply(box, o.workflows.map(function (w) {
+        return h('button', { type: 'button', class: current === w.id ? 'on' : '', onclick: function () { open(w.id); } },
+          (w.app_id || 'draft') + ' · ' + w.kind, h('div', { class: 'k' }, 'v' + w.version + ' · ' + w.source));
+      }));
+      if (selectId) open(selectId, note);
+    });
+  }
+  function open(id, note) {
+    api('GET', '/workflows/' + id).then(function (r) {
+      current = r.id; wf = r.definition; render(); loadList();
+      msg(note || 'Loaded v' + r.version + ' (' + r.versions.length + ' version' + (r.versions.length === 1 ? '' : 's') + ').', true);
+    });
+  }
+
+  // ---------- editor ----------
+  function field(obj, key, label, opts) {
+    opts = opts || {};
+    var input = h(opts.textarea ? 'textarea' : 'input', { value: obj[key] === undefined ? '' : (typeof obj[key] === 'object' ? JSON.stringify(obj[key]) : obj[key]), placeholder: opts.placeholder || '', rows: opts.textarea ? 3 : null,
+      oninput: function () {
+        var v = input.value;
+        if (opts.json) { try { obj[key] = v ? JSON.parse(v) : undefined; input.style.borderColor = ''; } catch (e) { input.style.borderColor = 'var(--bad)'; return; } }
+        else if (opts.number) obj[key] = v === '' ? undefined : Number(v);
+        else obj[key] = v === '' ? undefined : v;
+        clean(obj); syncJson();
+      } });
+    return h('label', {}, label, input);
+  }
+  function flag(obj, key, label) {
+    var cb = h('input', { type: 'checkbox', checked: obj[key], onchange: function () { if (cb.checked) obj[key] = true; else delete obj[key]; syncJson(); } });
+    return h('label', {}, cb, label);
+  }
+  function targetEditor(step) {
+    step.target = step.target || {};
+    var t = step.target;
+    var roleObj = { role: t.role ? t.role.role : undefined, name: t.role ? t.role.name : undefined };
+    function syncRole() { if (roleObj.role) { t.role = clean({ role: roleObj.role, name: roleObj.name, exact: t.role && t.role.exact }); } else delete t.role; syncJson(); }
+    var roleIn = h('input', { value: roleObj.role || '', oninput: function () { roleObj.role = roleIn.value || undefined; syncRole(); } });
+    var nameIn = h('input', { value: roleObj.name || '', oninput: function () { roleObj.name = nameIn.value || undefined; syncRole(); } });
+    return h('div', { class: 'target' },
+      h('div', { class: 'hint' }, 'Target'),
+      h('div', { class: 'grid' },
+        h('label', {}, 'Role', roleIn), h('label', {}, 'Accessible name', nameIn),
+        field(t, 'label', 'Label'), field(t, 'placeholder', 'Placeholder'), field(t, 'text', 'Text'),
+        field(t, 'testId', 'Test id'), field(t, 'css', 'CSS'), field(t, 'frame', 'In iframe (CSS)'),
+        field(t, 'hasExactText', 'Containing exact text'), field(t, 'nth', 'Pick nth match', { number: true })),
+      h('div', { class: 'grid' }, field(t, 'within', 'Within (container target, JSON)', { json: true, textarea: true })),
+      h('div', { class: 'flags' }, flag(t, 'exact', 'exact label/text match')));
+  }
+  function stepCard(list, i) {
+    var s = list[i];
+    var opSel = h('select', { onchange: function () { list[i] = { op: opSel.value }; render(); } }, OPS.map(function (o) { return h('option', { value: o }, o); }));
+    opSel.value = s.op;
+    var body = [];
+    if (s.op === 'navigate') body.push(h('div', { class: 'grid' }, field(s, 'url', 'URL', { placeholder: '{{baseUrl}}/people' })));
+    if (['fill', 'click', 'select', 'check', 'press'].indexOf(s.op) >= 0) body.push(targetEditor(s));
+    if (s.op === 'fill' || s.op === 'select') body.push(h('div', { class: 'grid' }, field(s, 'value', 'Value', { placeholder: '{{params.email}} or {{secrets.password}}' }),
+      s.op === 'fill' ? field(s, 'mode', 'Mode (fill | type)') : null));
+    if (s.op === 'press') body.push(h('div', { class: 'grid' }, field(s, 'key', 'Key', { placeholder: 'Enter' })));
+    if (s.op === 'wait') body.push(h('div', { class: 'grid' }, field(s, 'url', 'URL contains'), field(s, 'ms', 'Milliseconds', { number: true }), field(s, 'state', 'State (visible | hidden)')), targetEditor(s));
+    if (s.op === 'assert') body.push(h('div', { class: 'grid' }, field(s, 'text', 'Contains text'), field(s, 'urlIncludes', 'URL contains')), targetEditor(s));
+    if (s.op === 'end') body.push(h('div', { class: 'grid' }, field(s, 'outcome', 'Outcome (succeeded | noop)'), field(s, 'message', 'Message')));
+    if (s.op === 'findInPages' || s.op === 'if') {
+      var copy = Object.assign({}, s); delete copy.op;
+      var ta = h('textarea', { rows: 8, value: JSON.stringify(copy, null, 2), oninput: function () {
+        try { var v = JSON.parse(ta.value); list[i] = Object.assign({ op: s.op }, v); ta.style.borderColor = ''; syncJson(); } catch (e) { ta.style.borderColor = 'var(--bad)'; }
+      } });
+      body.push(h('label', {}, s.op === 'if' ? 'Condition and branches (JSON)' : 'Row, match, ready, next, saveAs (JSON)', ta));
+    }
+    body.push(h('div', { class: 'grid' }, field(s, 'note', 'Note'), field(s, 'timeoutMs', 'Timeout ms', { number: true })));
+    body.push(h('div', { class: 'flags' }, flag(s, 'checkpoint', 'checkpoint (resume here after re-login)'), flag(s, 'effect', 'effect (commits the change)'),
+      s.op === 'click' ? flag(s, 'optional', 'optional') : null));
+    function move(d) { var j = i + d; if (j < 0 || j >= list.length) return; var x = list[i]; list[i] = list[j]; list[j] = x; render(); }
+    return h('div', { class: 'step' },
+      h('div', { class: 'step-head' }, h('span', { class: 'n' }, i + 1), opSel,
+        h('span', { class: 'tools' },
+          h('button', { type: 'button', title: 'Move up', onclick: function () { move(-1); } }, '↑'),
+          h('button', { type: 'button', title: 'Move down', onclick: function () { move(1); } }, '↓'),
+          h('button', { type: 'button', title: 'Duplicate', onclick: function () { list.splice(i + 1, 0, JSON.parse(JSON.stringify(s))); render(); } }, '⧉'),
+          h('button', { type: 'button', title: 'Delete', onclick: function () { list.splice(i, 1); render(); } }, '✕'))),
+      body);
+  }
+  function stepList(title, list, hint) {
+    return [h('h3', {}, title), h('p', { class: 'hint' }, hint)]
+      .concat(list.map(function (_, i) { return stepCard(list, i); }))
+      .concat([h('button', { type: 'button', onclick: function () { list.push({ op: 'click', target: {} }); render(); } }, '+ Add step')]);
+  }
+  function render() {
+    var ed = document.getElementById('editor');
+    wf.params = wf.params || {}; wf.secrets = wf.secrets || []; wf.login = wf.login || []; wf.steps = wf.steps || [];
+    var paramRows = Object.keys(wf.params).map(function (k) {
+      return h('tr', {}, h('td', { class: 'mono' }, k), h('td', {}, field(wf.params[k], 'description', '')), h('td', {}, field(wf.params[k], 'example', '')),
+        h('td', {}, h('button', { type: 'button', onclick: function () { delete wf.params[k]; render(); } }, '✕')));
+    });
+    var newParam = h('input', { placeholder: 'new param name' });
+    var secretBoxes = ['username', 'password', 'totpSecret', 'newPassword'].map(function (s) {
+      var cb = h('input', { type: 'checkbox', checked: wf.secrets.indexOf(s) >= 0, onchange: function () {
+        wf.secrets = wf.secrets.filter(function (x) { return x !== s; }); if (cb.checked) wf.secrets.push(s); syncJson(); } });
+      return h('label', {}, cb, s);
+    });
+    ed.replaceChildren(
+      h('h2', {}, 'Editor'),
+      h('div', { class: 'grid' }, field(wf, 'id', 'Id'), field(wf, 'app', 'App'), field(wf, 'kind', 'Task kind'), field(wf, 'version', 'Version', { number: true })),
+      h('div', { class: 'grid', style: 'margin-top:6px' }, field(wf, 'description', 'Description')),
+      h('h3', {}, 'Params (sent by the server, never secret)'),
+      h('table', { class: 'params' }, paramRows, h('tr', {}, h('td', {}, newParam), h('td', { colspan: 3 }, h('button', { type: 'button', onclick: function () {
+        var n = newParam.value.trim(); if (!n) return; wf.params[n] = { description: n }; render(); } }, '+ Add param')))),
+      h('h3', {}, 'Secrets (decrypted on the device at run time)'), h('div', { class: 'flags' }, secretBoxes),
+      ...stepList('Sign-in steps', wf.login, 'Run first, and again if the session expires mid-task.'),
+      ...stepList('Steps', wf.steps, 'Mark the step that commits the change as "effect", the first navigation as a "checkpoint", and end with an assert that proves it worked.'));
+    syncJson();
+  }
+
+  document.getElementById('blank').addEventListener('click', function () {
+    current = null;
+    wf = { id: 'new.workflow', app: 'hr', kind: 'new_task', version: 1, description: 'Describe what this does.', params: {}, secrets: ['username', 'password'],
+      login: [{ op: 'navigate', url: '{{baseUrl}}/login' }], steps: [] };
+    render(); msg('New workflow. Save to store it.', true);
+  });
+  document.getElementById('apply').addEventListener('click', function () {
+    try { wf = JSON.parse(document.getElementById('json').value); render(); msg('Applied.', true); } catch (e) { msg('Not valid JSON: ' + e.message); }
+  });
+  document.getElementById('validate').addEventListener('click', function () {
+    api('POST', '/workflows/validate', wf).then(function (r) { if (r.ok) msg('Valid.', true); else msg(r.errors.join('\n')); });
+  });
+  document.getElementById('save').addEventListener('click', function () {
+    api('POST', '/workflows', { definition: wf, source: 'editor' }).then(function (r) { loadList(r.id, 'Saved as v' + r.version + '. New tasks will use it.'); })
+      .catch(function (e) { msg(e.message); });
+  });
+  var q = new URLSearchParams(location.search).get('id');
+  loadList(q ? Number(q) : null);
+})();
+</script>
+</body>
+</html>

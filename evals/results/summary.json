@@ -1,0 +1,236 @@
+{
+  "generatedAt": "2026-10-19T21:41:48.730Z",
+  "config": {
+    "runsPerWorkflow": 50,
+    "seed": 1,
+    "concurrency": 3
+  },
+  "machine": {
+    "os": "linux 6.18.44-fc-v139 (x64)",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz × 2",
+    "memoryGb": 8,
+    "node": "v22.22.0",
+    "playwright": "1.56.1",
+    "chromium": "141.0.7390.37"
+  },
+  "wallSeconds": 1019,
+  "overall": {
+    "runs": 600,
+    "passed": 600,
+    "rate": 100,
+    "p50Ms": 2974,
+    "p95Ms": 16675
+  },
+  "silentFailures": 0,
+  "byApp": {
+    "hr": {
+      "runs": 200,
+      "passed": 200,
+      "rate": 100,
+      "p50Ms": 1801,
+      "p95Ms": 4191
+    },
+    "helpdesk": {
+      "runs": 200,
+      "passed": 200,
+      "rate": 100,
+      "p50Ms": 7400,
+      "p95Ms": 23028
+    },
+    "directory": {
+      "runs": 200,
+      "passed": 200,
+      "rate": 100,
+      "p50Ms": 2488,
+      "p95Ms": 7363
+    }
+  },
+  "byWorkflow": {
+    "directory.create_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 3255,
+      "p95Ms": 7546
+    },
+    "directory.remove_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 3114,
+      "p95Ms": 7864
+    },
+    "directory.rotate_password": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 2395,
+      "p95Ms": 6522
+    },
+    "directory.sign_in": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 1631,
+      "p95Ms": 2689
+    },
+    "helpdesk.create_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 14179,
+      "p95Ms": 26366
+    },
+    "helpdesk.remove_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 11933,
+      "p95Ms": 24082
+    },
+    "helpdesk.rotate_password": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 5353,
+      "p95Ms": 9027
+    },
+    "helpdesk.sign_in": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 4155,
+      "p95Ms": 7635
+    },
+    "hr.create_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 2888,
+      "p95Ms": 5047
+    },
+    "hr.remove_user": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 2120,
+      "p95Ms": 5466
+    },
+    "hr.rotate_password": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 1563,
+      "p95Ms": 2930
+    },
+    "hr.sign_in": {
+      "runs": 50,
+      "passed": 50,
+      "rate": 100,
+      "p50Ms": 1031,
+      "p95Ms": 1346
+    }
+  },
+  "byMess": {
+    "random_ids": {
+      "runs": 535,
+      "passed": 535,
+      "rate": 100,
+      "p50Ms": 3075,
+      "p95Ms": 17308
+    },
+    "iframe_login": {
+      "runs": 400,
+      "passed": 400,
+      "rate": 100,
+      "p50Ms": 2152,
+      "p95Ms": 5813
+    },
+    "totp": {
+      "runs": 400,
+      "passed": 400,
+      "rate": 100,
+      "p50Ms": 4007,
+      "p95Ms": 19788
+    },
+    "cookie_banner": {
+      "runs": 211,
+      "passed": 211,
+      "rate": 100,
+      "p50Ms": 4479,
+      "p95Ms": 17187
+    },
+    "slow_spa": {
+      "runs": 200,
+      "passed": 200,
+      "rate": 100,
+      "p50Ms": 7400,
+      "p95Ms": 23028
+    },
+    "session_expired": {
+      "runs": 109,
+      "passed": 109,
+      "rate": 100,
+      "p50Ms": 4108,
+      "p95Ms": 24304
+    },
+    "pagination": {
+      "runs": 177,
+      "passed": 177,
+      "rate": 100,
+      "p50Ms": 5813,
+      "p95Ms": 23056
+    },
+    "confirm_modal": {
+      "runs": 127,
+      "passed": 127,
+      "rate": 100,
+      "p50Ms": 3427,
+      "p95Ms": 17506
+    },
+    "announcement": {
+      "runs": 29,
+      "passed": 29,
+      "rate": 100,
+      "p50Ms": 2488,
+      "p95Ms": 9804
+    },
+    "label_drift": {
+      "runs": 132,
+      "passed": 132,
+      "rate": 100,
+      "p50Ms": 3132,
+      "p95Ms": 17308
+    },
+    "unknown_popup": {
+      "runs": 15,
+      "passed": 15,
+      "rate": 100,
+      "p50Ms": 8248,
+      "p95Ms": 24304
+    }
+  },
+  "failureReasons": [],
+  "locator": {
+    "resolutions": 7534,
+    "strategyShare": {
+      "role": 57,
+      "label": 22.8,
+      "text": 11.2,
+      "placeholder": 6,
+      "css": 2.2,
+      "testId": 0.8
+    },
+    "fallbackRuns": 348,
+    "fallbacksTotal": 678
+  },
+  "interstitialsHandled": {
+    "cookie_banner": 202,
+    "unknown_popup": 11,
+    "announcement": 21,
+    "session_expired": 107
+  },
+  "reloginRuns": 107,
+  "reclickRuns": 2,
+  "failedRunArtifacts": []
+}
