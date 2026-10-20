@@ -126,6 +126,8 @@ cp .env.example .env                   # optional: defaults already match docker
 npm run db:setup                       # creates keyrun, keyrun_mocks, keyrun_test and migrates
 ```
 
+No Docker? Any local Postgres 16 works. Create the login once (`createuser -s keyrun`, then `psql -c "alter role keyrun password 'keyrun'" postgres`), or point the three URLs in `.env` at a user you already have.
+
 **The quick look:** one process starts the mock apps, the control plane and an agent, creates demo tenants, enrolls this machine as a device, uploads encrypted credentials and queues a few tasks.
 
 ```bash

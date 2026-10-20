@@ -73,9 +73,13 @@ test('waits with backoff for a slow single-page app', async () => {
   assert.ok(r.steps.some((s) => (s.attempts ?? 1) > 1), 'at least one step needed retries');
 });
 
-test('dismisses a consent wall that appears late and blocks a click', async () => {
-  const t = await tenant('hr', { cookieBanner: { delayMs: 250 } });
-  const r = await run('hr', 'create_user', t);
+test('dismisses a consent wall that shows up late, while a slow page is still loading', async () => {
+  // Deterministic on any machine: the wall appears 300 ms after the page loads, and the sign-in
+  // API alone takes at least a second, so the wall is always on screen while the engine waits.
+  // (An earlier version used a fast app and a 250 ms delay; on a fast laptop the run could
+  // finish before the wall ever appeared.)
+  const t = await tenant('helpdesk', { cookieBanner: { delayMs: 300 }, latency: { minMs: 1000, maxMs: 1200, spikeChance: 0, spikeMs: 0 } });
+  const r = await run('helpdesk', 'sign_in', t);
   assert.equal(r.status, 'succeeded', r.message);
   assert.equal(r.interstitials.cookie_banner, 1);
 });
