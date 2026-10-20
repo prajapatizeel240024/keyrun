@@ -25,49 +25,49 @@ It's a small, honest version of the real thing. Everything runs on `127.0.0.1` a
 <!-- eval:start -->
 **600/600 runs passed (100.0%)**, graded against each mock app's database. Silent failures (engine said success, database disagreed): **0**.
 
-Machine: Intel(R) Xeon(R) Processor @ 2.80GHz × 2, 8 GB RAM, linux 6.18.44-fc-v139 (x64); Node v22.22.0, Playwright 1.56.1 (Chromium 141.0.7390.37). 50 runs per workflow, concurrency 3, seed 1, wall time 17 min. Generated 2026-10-19.
+Machine: Apple M5 × 10, 32 GB RAM, darwin 25.6.0 (arm64); Node v26.0.0, Playwright 1.56.1 (Chromium 141.0.7390.37). 50 runs per workflow, concurrency 3, seed 1, wall time 13 min. Generated 2026-10-20.
 
 | App | Runs | Passed | Success | p50 | p95 |
 |---|---:|---:|---:|---:|---:|
-| hr | 200 | 200 | 100.0% | 1.8 s | 4.2 s |
-| helpdesk | 200 | 200 | 100.0% | 7.4 s | 23.0 s |
-| directory | 200 | 200 | 100.0% | 2.5 s | 7.4 s |
+| hr | 200 | 200 | 100.0% | 0.8 s | 1.3 s |
+| helpdesk | 200 | 200 | 100.0% | 7.6 s | 22.9 s |
+| directory | 200 | 200 | 100.0% | 1.3 s | 2.5 s |
 
 | Workflow | Runs | Success | p50 | p95 |
 |---|---:|---:|---:|---:|
-| directory.create_user | 50 | 100.0% | 3.3 s | 7.5 s |
-| directory.remove_user | 50 | 100.0% | 3.1 s | 7.9 s |
-| directory.rotate_password | 50 | 100.0% | 2.4 s | 6.5 s |
-| directory.sign_in | 50 | 100.0% | 1.6 s | 2.7 s |
-| helpdesk.create_user | 50 | 100.0% | 14.2 s | 26.4 s |
-| helpdesk.remove_user | 50 | 100.0% | 11.9 s | 24.1 s |
-| helpdesk.rotate_password | 50 | 100.0% | 5.4 s | 9.0 s |
-| helpdesk.sign_in | 50 | 100.0% | 4.2 s | 7.6 s |
-| hr.create_user | 50 | 100.0% | 2.9 s | 5.0 s |
-| hr.remove_user | 50 | 100.0% | 2.1 s | 5.5 s |
-| hr.rotate_password | 50 | 100.0% | 1.6 s | 2.9 s |
-| hr.sign_in | 50 | 100.0% | 1.0 s | 1.3 s |
+| directory.create_user | 50 | 100.0% | 1.4 s | 2.6 s |
+| directory.remove_user | 50 | 100.0% | 1.5 s | 2.4 s |
+| directory.rotate_password | 50 | 100.0% | 1.3 s | 4.0 s |
+| directory.sign_in | 50 | 100.0% | 1.0 s | 1.3 s |
+| helpdesk.create_user | 50 | 100.0% | 15.0 s | 30.4 s |
+| helpdesk.remove_user | 50 | 100.0% | 10.5 s | 25.2 s |
+| helpdesk.rotate_password | 50 | 100.0% | 5.2 s | 9.0 s |
+| helpdesk.sign_in | 50 | 100.0% | 3.5 s | 8.5 s |
+| hr.create_user | 50 | 100.0% | 1.0 s | 1.4 s |
+| hr.remove_user | 50 | 100.0% | 0.9 s | 1.3 s |
+| hr.rotate_password | 50 | 100.0% | 0.8 s | 1.3 s |
+| hr.sign_in | 50 | 100.0% | 0.5 s | 0.8 s |
 
 | Kind of mess (runs where it was in play) | Runs | Success |
 |---|---:|---:|
 | Field ids/classes change every load | 535 | 100.0% |
 | Login form inside an iframe | 400 | 100.0% |
 | TOTP second step | 400 | 100.0% |
-| Consent overlay blocking clicks (appeared) | 211 | 100.0% |
+| Consent overlay blocking clicks (appeared) | 167 | 100.0% |
 | Slow single-page app (150 ms – 4.5 s per call) | 200 | 100.0% |
 | Session expired mid-task (fired) | 109 | 100.0% |
 | Target beyond page 1 of the list | 177 | 100.0% |
 | Confirm modal before removal | 127 | 100.0% |
-| "What's new" popup (appeared) | 29 | 100.0% |
+| "What's new" popup (appeared) | 24 | 100.0% |
 | A/B copy test renamed the action buttons | 132 | 100.0% |
-| Survey popup with no dedicated handler (appeared) | 15 | 100.0% |
+| Survey popup with no dedicated handler (appeared) | 14 | 100.0% |
 
 No failures in this run.
 
-Locator: 7534 element resolutions; winning strategy share: role 57.0%, label 22.8%, text 11.2%, placeholder 6.0%, css 2.2%, testId 0.8%. 678 resolutions needed a fallback strategy (in 348 runs). Interstitials handled: cookie_banner 202, unknown_popup 11, announcement 21, session_expired 107. Runs with a forced re-login: 107. Runs that repeated a swallowed click: 2.
+Locator: 7535 element resolutions; winning strategy share: role 57.8%, label 23.2%, text 11.1%, placeholder 6.0%, css 1.3%, testId 0.5%. 594 resolutions needed a fallback strategy (in 285 runs). Interstitials handled: announcement 6, session_expired 107, cookie_banner 137, unknown_popup 4. Runs with a forced re-login: 107. Runs that repeated a swallowed click: 0.
 <!-- eval:end -->
 
-Read the 100% as "the engine handles every kind of mess I built", not "it works on any app". Getting here took five rounds, and the eval caught a real bug in most of them, including a double form submit and a click swallowed by a popup; the full run just before this one was 599/600. The story is in [DESIGN.md](DESIGN.md#what-the-evals-caught).
+Read the 100% as "the engine handles every kind of mess I built", not "it works on any app". Getting here took seven rounds, and the eval caught a real bug in most of them, including a double form submit, a click swallowed by a popup, a late reply from an expired session, and a popup swallowing a click that saves a change; round 6's full run was 599/600. The story is in [DESIGN.md](DESIGN.md#what-the-evals-caught).
 
 ## What it looks like
 
@@ -167,8 +167,8 @@ KEYRUN_USERNAME=… KEYRUN_PASSWORD=… npm run run:workflow -- --workflow workf
 
 ```bash
 npm run typecheck
-npm test                    # 51 tests, ~2 min: queue, crypto, engine, agent end to end, recorder, extension, no-plaintext scan
-npm run eval                # 600 runs; writes evals/results/ and the table above (~16 min on 2 vCPUs)
+npm test                    # 56 tests, ~2 min: queue, crypto, engine, agent end to end, recorder, extension, no-plaintext scan
+npm run eval                # 600 runs; writes evals/results/ and the table above (~13 min on an Apple M5 laptop)
 npm run eval -- --runs 10   # quicker look
 npm run eval:gate           # fails if any success rate dropped below evals/baseline.json
 ```
@@ -192,12 +192,12 @@ workflows/    12 JSON workflows (3 apps × sign_in, create_user, remove_user, ro
 extension/    minimal MV3 recorder extension
 test/         node:test suites
 db/           SQL migrations (control plane, mock apps)
-evals/        baseline.json, the latest results (incl. every run), and the report from each round
+evals/        baseline.json, the latest results (incl. every run), and the reports from rounds 1–6
 ```
 
 ## Honest notes
 
 - The mock apps are mine, so I know their mess. The eval shows the engine handles *these* kinds of mess, not that it handles every app. The A/B-label and survey-popup mess were added after the first version of the engine passed, to see what it would do with things it wasn't designed for: it failed, and that's in DESIGN.md.
-- Numbers are from a 2-vCPU cloud container running three browser contexts at once. Your laptop will be faster; timing-related failures, if any, will look different.
+- Numbers are from an Apple M5 laptop running three browser contexts at once. Timing-related failures change with the machine and from run to run: in full runs the round 6 race only showed up on GitHub's CI runner, and round 7's popup race failed once in 600 runs on this laptop, then about once in 150 replays of that one run.
 - The "device" in tests and the demo is a folder on disk (`.keyrun-agent/`, mode 0600). On a real device the private key belongs in the OS keychain or a TPM. See DESIGN.md for that and the rest of what I'd change in production.
 - Keyrun only automates loopback URLs. The engine, agent, server and extension all refuse anything else.

@@ -71,7 +71,7 @@ export type RunResult = {
   fallbacks: number;
   interstitials: Partial<Record<InterstitialKind | 'native_dialog', number>>;
   relogins: number;
-  /** Plain clicks repeated because the next step never saw the page react. */
+  /** Clicks repeated because an overlay swallowed them (see recoverSwallowedClick). */
   reclicks: number;
   artifacts?: { dir: string; screenshot?: string; traces: string[] };
 };
@@ -172,9 +172,13 @@ class Run {
   currentPath = 'start';
   reclicks = 0;
   private effectApplied = false;
-  private lastClick?: { target: Target; requestsBefore: number; retried: boolean };
+  private lastClick?: { target: Target; effect: boolean; requestsBefore: number; otherSendsBefore: number; dismissedAtClick: number; retried: boolean };
   /** Page loads and XHR/fetch calls so far: if a click caused any, it was not swallowed. */
   private requests = 0;
+  /** WebSockets opened, WebSocket messages sent and EventSource streams opened so far. Only the `effect` rule uses them. */
+  private otherSends = 0;
+  /** Interstitials dismissed so far. One dismissed after a click is the sign that it covered the click. */
+  private dismissed = 0;
   private inflight = new Set<Request>();
   private vars: Record<string, string> = {};
   private secretValues: string[];
@@ -184,12 +188,19 @@ class Run {
   constructor(private page: Page, private trace: SecretSafeTrace, private input: RunInput, private t: Timeouts) {
     const ctx = page.context();
     ctx.on('request', (r) => {
+      if (r.resourceType() === 'eventsource') this.otherSends++;
       if (!['document', 'xhr', 'fetch'].includes(r.resourceType())) return;
       this.requests++;
       this.inflight.add(r);
     });
     ctx.on('requestfinished', (r) => this.inflight.delete(r));
     ctx.on('requestfailed', (r) => this.inflight.delete(r));
+    const watchSockets = (p: Page) => p.on('websocket', (ws) => {
+      this.otherSends++;
+      ws.on('framesent', () => this.otherSends++);
+    });
+    watchSockets(page);
+    ctx.on('page', watchSockets);
     const s = input.secrets ?? {};
     this.secretValues = [s.username, s.password, s.newPassword, s.totpSecret].filter((v): v is string => !!v);
     this.allowedOrigins = input.allowedOrigins ?? [new URL(input.baseUrl).origin];
@@ -242,16 +253,31 @@ class Run {
     }
   }
 
-  private async runLogin(): Promise<void> {
+  private async runLogin(again = false): Promise<void> {
     for (;;) {
       try {
+        if (again) await this.leaveExpiredPage();
         await this.runSeq(this.input.workflow.login, 'login');
         return;
       } catch (e) {
         if (!(e instanceof ReloginSignal)) throw e;
         this.countRelogin();
+        again = true;
       }
     }
+  }
+
+  /**
+   * Before signing in again, unload the page. A single-page app can still have calls in flight
+   * under the expired session, and when one of them comes back 401 after the new sign-in has
+   * started, the app jumps to its login page with no "session expired" text for the engine to see
+   * (GitHub CI caught this once in 600 runs). Navigating to the login URL is not enough: when it
+   * matches the current URL up to the #fragment, the browser keeps the old page. Skipped when the
+   * login steps don't start with a navigation, because then they expect the current page.
+   */
+  private async leaveExpiredPage(): Promise<void> {
+    if (this.input.workflow.login[0]?.op !== 'navigate') return;
+    await this.page.goto('about:blank').catch(() => {});
   }
 
   private countRelogin() {
@@ -271,7 +297,7 @@ class Run {
       } catch (e) {
         if (!(e instanceof ReloginSignal)) throw e;
         this.countRelogin();
-        await this.runLogin();
+        await this.runLogin(true);
         i = checkpoint;
       }
     }
@@ -306,6 +332,7 @@ class Run {
     if (step.op !== 'navigate') await this.clearInterstitials();
     const timeout = step.timeoutMs ?? this.t.stepMs;
     const requestsBefore = this.requests;
+    const otherSendsBefore = this.otherSends;
 
     switch (step.op) {
       case 'navigate': {
@@ -391,8 +418,10 @@ class Run {
         break;
     }
     if (step.effect) this.effectApplied = true;
-    // Remember a plain (non-effect) click so the next step can recover if it was swallowed.
-    this.lastClick = step.op === 'click' && !step.effect && !log.info ? { target: step.target, requestsBefore, retried: false } : undefined;
+    // Remember a click so the next step can repeat it if an overlay swallowed it (see recoverSwallowedClick).
+    this.lastClick = step.op === 'click' && !log.info
+      ? { target: step.target, effect: !!step.effect, requestsBefore, otherSendsBefore, dismissedAtClick: this.dismissed, retried: false }
+      : undefined;
     this.finishLog(log, t0);
   }
 
@@ -420,7 +449,7 @@ class Run {
     for (let n = 0; ; n++) {
       const p = await probe(this.page, target, this.sub);
       ambiguous = ambiguous || p.ambiguous.length > 0;
-      if (!p.resolved && Date.now() - started > SWALLOWED_CLICK_AFTER_MS) await this.recoverSwallowedClick();
+      if (!p.resolved && Date.now() - started > SWALLOWED_CLICK_AFTER_MS) await this.recoverSwallowedClick(found || ambiguous);
       if (p.resolved) {
         found = true;
         try {
@@ -447,17 +476,29 @@ class Run {
    * reports success (the eval caught this once in 600 runs: a consent wall ate the "Next" click
    * of a sign-in form). If the step after a plain click cannot find its target and the clicked
    * element is still sitting there and the page made no request since, click it once more.
-   * Never for `effect` steps, and never if the first click caused any page load or API call:
-   * re-sending a "Create" or "Delete" is how you act twice.
+   * An `effect` click (one that saves a change) gets that one repeat only with proof the first
+   * click never reached the app, because re-sending a "Create" or "Delete" is how you act twice
+   * (round 7: a "What's new" popup swallowed "Save password"). The proof: the next step's target
+   * never appeared, an interstitial had to be dismissed after the click, and right before the
+   * repeat nothing has gone out since the click (no page load, XHR/fetch, WebSocket message or
+   * EventSource; beacons don't count). Playwright can't see traffic that a service worker or a
+   * shared worker sends for the page, so an app that saves that way is outside this proof.
    */
-  private async recoverSwallowedClick(): Promise<void> {
+  private async recoverSwallowedClick(targetSeen: boolean): Promise<void> {
     const last = this.lastClick;
     if (!last || last.retried) return;
     last.retried = true;
     if (this.requests !== last.requestsBefore) return; // the click did something; just slow
+    if (last.effect && (targetSeen || this.otherSends !== last.otherSendsBefore)) return;
     const p = await probe(this.page, last.target, this.sub);
     if (!p.resolved || !(await p.resolved.loc.isEnabled().catch(() => false))) return;
     await this.clearInterstitials(true);
+    if (last.effect) {
+      // Wait until the element can take the click without clicking it, then check the proof again.
+      const ready = await p.resolved.loc.click({ trial: true, timeout: this.t.attemptMs }).then(() => true, () => false);
+      const quiet = this.requests === last.requestsBefore && this.otherSends === last.otherSendsBefore;
+      if (!ready || !quiet || this.dismissed === last.dismissedAtClick) return;
+    }
     try {
       await p.resolved.loc.click({ timeout: this.t.attemptMs, noWaitAfter: true });
       this.reclicks++;
@@ -510,6 +551,9 @@ class Run {
     const wantText = step.text === undefined ? undefined : this.sub(step.text);
     const wantUrl = step.urlIncludes === undefined ? undefined : this.sub(step.urlIncludes);
     let seen = '';
+    // For repeating a swallowed `effect` click: did we look for the target, and did it ever appear?
+    let looked = false;
+    let appeared = false;
     for (let n = 0; ; n++) {
       let ok = true;
       if (wantUrl !== undefined && !this.page.url().includes(wantUrl)) {
@@ -518,6 +562,8 @@ class Run {
       }
       if (ok && step.target) {
         const p = await probe(this.page, step.target, this.sub);
+        looked = true;
+        if (p.resolved || p.ambiguous.length > 0) appeared = true;
         if (!p.resolved) {
           ok = false;
           seen = `no ${describeTarget(step.target)}`;
@@ -534,7 +580,7 @@ class Run {
         }
       }
       if (ok) return;
-      if (Date.now() - (deadline - timeoutMs) > SWALLOWED_CLICK_AFTER_MS) await this.recoverSwallowedClick();
+      if (Date.now() - (deadline - timeoutMs) > SWALLOWED_CLICK_AFTER_MS) await this.recoverSwallowedClick(appeared || !looked);
       await this.clearInterstitials();
       if (Date.now() >= deadline) break;
       await sleep(Math.min(backoffMs(n), Math.max(0, deadline - Date.now())));
@@ -590,8 +636,9 @@ class Run {
         const found = await it.detect(this.page);
         if (!found) continue;
         this.bump(it.kind);
-        const outcome = await it.handle(this.page, found).catch(() => 'continue' as const);
+        const outcome = await it.handle(this.page, found).catch(() => 'failed' as const);
         if (outcome === 'relogin') throw new ReloginSignal(it.kind);
+        if (outcome === 'continue') this.dismissed++;
         handled = true;
       }
       if (!handled) return;

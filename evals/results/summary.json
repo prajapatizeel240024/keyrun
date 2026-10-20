@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-19T21:41:48.730Z",
+  "generatedAt": "2026-10-20T04:49:29.058Z",
   "config": {
     "runsPerWorkflow": 50,
     "seed": 1,
     "concurrency": 3
   },
   "machine": {
-    "os": "linux 6.18.44-fc-v139 (x64)",
-    "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz × 2",
-    "memoryGb": 8,
-    "node": "v22.22.0",
+    "os": "darwin 25.6.0 (arm64)",
+    "cpu": "Apple M5 × 10",
+    "memoryGb": 32,
+    "node": "v26.0.0",
     "playwright": "1.56.1",
     "chromium": "141.0.7390.37"
   },
-  "wallSeconds": 1019,
+  "wallSeconds": 795,
   "overall": {
     "runs": 600,
     "passed": 600,
     "rate": 100,
-    "p50Ms": 2974,
-    "p95Ms": 16675
+    "p50Ms": 1319,
+    "p95Ms": 16440
   },
   "silentFailures": 0,
   "byApp": {
@@ -27,22 +27,22 @@
       "runs": 200,
       "passed": 200,
       "rate": 100,
-      "p50Ms": 1801,
-      "p95Ms": 4191
+      "p50Ms": 850,
+      "p95Ms": 1338
     },
     "helpdesk": {
       "runs": 200,
       "passed": 200,
       "rate": 100,
-      "p50Ms": 7400,
-      "p95Ms": 23028
+      "p50Ms": 7598,
+      "p95Ms": 22901
     },
     "directory": {
       "runs": 200,
       "passed": 200,
       "rate": 100,
-      "p50Ms": 2488,
-      "p95Ms": 7363
+      "p50Ms": 1302,
+      "p95Ms": 2473
     }
   },
   "byWorkflow": {
@@ -50,85 +50,85 @@
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 3255,
-      "p95Ms": 7546
+      "p50Ms": 1374,
+      "p95Ms": 2612
     },
     "directory.remove_user": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 3114,
-      "p95Ms": 7864
+      "p50Ms": 1510,
+      "p95Ms": 2445
     },
     "directory.rotate_password": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 2395,
-      "p95Ms": 6522
+      "p50Ms": 1287,
+      "p95Ms": 3994
     },
     "directory.sign_in": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 1631,
-      "p95Ms": 2689
+      "p50Ms": 961,
+      "p95Ms": 1264
     },
     "helpdesk.create_user": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 14179,
-      "p95Ms": 26366
+      "p50Ms": 14973,
+      "p95Ms": 30372
     },
     "helpdesk.remove_user": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 11933,
-      "p95Ms": 24082
+      "p50Ms": 10472,
+      "p95Ms": 25195
     },
     "helpdesk.rotate_password": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 5353,
-      "p95Ms": 9027
+      "p50Ms": 5244,
+      "p95Ms": 8952
     },
     "helpdesk.sign_in": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 4155,
-      "p95Ms": 7635
+      "p50Ms": 3532,
+      "p95Ms": 8538
     },
     "hr.create_user": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 2888,
-      "p95Ms": 5047
+      "p50Ms": 983,
+      "p95Ms": 1414
     },
     "hr.remove_user": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 2120,
-      "p95Ms": 5466
+      "p50Ms": 929,
+      "p95Ms": 1338
     },
     "hr.rotate_password": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 1563,
-      "p95Ms": 2930
+      "p50Ms": 816,
+      "p95Ms": 1265
     },
     "hr.sign_in": {
       "runs": 50,
       "passed": 50,
       "rate": 100,
-      "p50Ms": 1031,
-      "p95Ms": 1346
+      "p50Ms": 518,
+      "p95Ms": 802
     }
   },
   "byMess": {
@@ -136,101 +136,101 @@
       "runs": 535,
       "passed": 535,
       "rate": 100,
-      "p50Ms": 3075,
-      "p95Ms": 17308
+      "p50Ms": 1347,
+      "p95Ms": 17409
     },
     "iframe_login": {
       "runs": 400,
       "passed": 400,
       "rate": 100,
-      "p50Ms": 2152,
-      "p95Ms": 5813
+      "p50Ms": 1036,
+      "p95Ms": 2269
     },
     "totp": {
       "runs": 400,
       "passed": 400,
       "rate": 100,
-      "p50Ms": 4007,
-      "p95Ms": 19788
+      "p50Ms": 2659,
+      "p95Ms": 18195
     },
     "cookie_banner": {
-      "runs": 211,
-      "passed": 211,
+      "runs": 167,
+      "passed": 167,
       "rate": 100,
-      "p50Ms": 4479,
-      "p95Ms": 17187
+      "p50Ms": 3819,
+      "p95Ms": 17409
     },
     "slow_spa": {
       "runs": 200,
       "passed": 200,
       "rate": 100,
-      "p50Ms": 7400,
-      "p95Ms": 23028
+      "p50Ms": 7598,
+      "p95Ms": 22901
     },
     "session_expired": {
       "runs": 109,
       "passed": 109,
       "rate": 100,
-      "p50Ms": 4108,
-      "p95Ms": 24304
+      "p50Ms": 1956,
+      "p95Ms": 28140
     },
     "pagination": {
       "runs": 177,
       "passed": 177,
       "rate": 100,
-      "p50Ms": 5813,
-      "p95Ms": 23056
+      "p50Ms": 1505,
+      "p95Ms": 23825
     },
     "confirm_modal": {
       "runs": 127,
       "passed": 127,
       "rate": 100,
-      "p50Ms": 3427,
-      "p95Ms": 17506
+      "p50Ms": 1510,
+      "p95Ms": 17808
     },
     "announcement": {
-      "runs": 29,
-      "passed": 29,
+      "runs": 24,
+      "passed": 24,
       "rate": 100,
-      "p50Ms": 2488,
-      "p95Ms": 9804
+      "p50Ms": 1302,
+      "p95Ms": 2612
     },
     "label_drift": {
       "runs": 132,
       "passed": 132,
       "rate": 100,
-      "p50Ms": 3132,
-      "p95Ms": 17308
+      "p50Ms": 1373,
+      "p95Ms": 17814
     },
     "unknown_popup": {
-      "runs": 15,
-      "passed": 15,
+      "runs": 14,
+      "passed": 14,
       "rate": 100,
-      "p50Ms": 8248,
-      "p95Ms": 24304
+      "p50Ms": 3195,
+      "p95Ms": 29375
     }
   },
   "failureReasons": [],
   "locator": {
-    "resolutions": 7534,
+    "resolutions": 7535,
     "strategyShare": {
-      "role": 57,
-      "label": 22.8,
-      "text": 11.2,
+      "role": 57.8,
+      "label": 23.2,
+      "text": 11.1,
       "placeholder": 6,
-      "css": 2.2,
-      "testId": 0.8
+      "css": 1.3,
+      "testId": 0.5
     },
-    "fallbackRuns": 348,
-    "fallbacksTotal": 678
+    "fallbackRuns": 285,
+    "fallbacksTotal": 594
   },
   "interstitialsHandled": {
-    "cookie_banner": 202,
-    "unknown_popup": 11,
-    "announcement": 21,
-    "session_expired": 107
+    "announcement": 6,
+    "session_expired": 107,
+    "cookie_banner": 137,
+    "unknown_popup": 4
   },
   "reloginRuns": 107,
-  "reclickRuns": 2,
+  "reclickRuns": 0,
   "failedRunArtifacts": []
 }

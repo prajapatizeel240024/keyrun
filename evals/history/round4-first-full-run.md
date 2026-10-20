@@ -1,6 +1,6 @@
 # Round 4: first full run (50 x 12)
 
-One run lost to a click swallowed by a consent wall. Fixed in round 5 (the numbers in the README).
+One run lost to a click swallowed by a consent wall. Fixed in round 5.
 
 **599/600 runs passed (99.8%)**, graded against each mock app's database. Silent failures (engine said success, database disagreed): **0**.
 

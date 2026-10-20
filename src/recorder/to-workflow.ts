@@ -141,8 +141,8 @@ export function eventsToWorkflow(
   const steps: Step[] = drafts.slice(split + 1).map((d) => d.step);
   // Resume here after a forced re-login.
   if (steps[0]) steps[0] = { ...steps[0], checkpoint: true };
-  // The last click usually commits the change. Mark it so the engine never repeats it;
-  // the editor shows the flag so a person can move it.
+  // The last click usually commits the change. Mark it so the engine repeats it only with proof
+  // the first click never reached the app; the editor shows the flag so a person can move it.
   for (let i = steps.length - 1; i >= 0; i--) {
     if (steps[i].op === 'click') {
       steps[i] = { ...steps[i], effect: true };
